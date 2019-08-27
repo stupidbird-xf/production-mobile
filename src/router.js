@@ -5,19 +5,19 @@ import Home from './views/Home.vue';
 Vue.use(Router);
 
 const router =  new Router({
-  mode: 'history',
-  base: process.env.BASE_URL,
+  // mode: 'history',
+  base: '/', // process.env.NODE_ENV === 'production' ? '/dist/' :
   routes: [
     {
-      path: '/pamier',
+      path: '/',
       name: 'home',
       component: Home
     },
-    // {
-    //   path: '/pamier/gift',
-    //   name: 'gift',
-    //   component: () => import('./views/gift.vue')
-    // }
+    {
+      path: '/materiel',
+      name: 'materiel',
+      component: () => import('./components/materiel.vue')
+    }
   ]
 });
 

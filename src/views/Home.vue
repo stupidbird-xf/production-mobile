@@ -1,22 +1,313 @@
 <template>
   <div class="home">
-    
+    <van-row class="top-tip">
+      <van-col span="17">
+        <p>使用指南：<br/>1、在下方列表选择需要挂接的产品信息<br/>2、点击“挂接”按钮</p>
+      </van-col>
+      <van-col span="7">
+        <img class="product-code-img" src="@/components/img/product-code-img.png" alt="">
+      </van-col>
+    </van-row>
+    <div class="card">
+      <div class="title">码信息</div>
+      <div class="message">
+        <p>类型：{{ codeMsg.type }}</p>
+        <p>数量：{{ codeMsg.num }}</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="title">选择产品</div>
+      <van-dropdown-menu>
+        <van-dropdown-item v-model="value" :options="productOptions" />
+      </van-dropdown-menu>
+      <div class="product-msg">
+        <van-row class="list-title border-outside">
+          <van-col class="border-inside" span="7">产品名称</van-col>
+          <van-col class="border-inside" span="6">英文ID</van-col>
+          <van-col class="border-inside" span="6">产品编码</van-col>
+          <van-col class="border-inside" span="5">积分奖励</van-col>
+        </van-row>
+        <van-row>
+          <van-col class="border-inside" span="7">苹果汁</van-col>
+          <van-col class="border-inside" span="6">aaa12</van-col>
+          <van-col class="border-inside" span="6">123321</van-col>
+          <van-col class="border-inside" span="5">10类型</van-col>
+        </van-row>
+      </div>
+    </div>
+    <van-button
+      class="confirm-btn"
+      type="default"
+      @click="confirmClick">确认挂接</van-button>
+    <van-popup v-model="show">
+      <div class="confirm-pop">
+        <img
+          class="close"
+          @click="closePop"
+          src="@/components/img/close.png">
+        <p class="title">产品码挂接成功</p>
+        <img
+          class="success"
+          src="@/components/img/success.png">
+        <div class="content">
+          <p><span class="name">产品名称：</span>{{ productMsg.name }}</p>
+          <p><span class="name">英文ID：</span>{{ productMsg.sname }}</p>
+          <p><span class="name">产品编码：</span>{{ productMsg.proAddress }}</p>
+          <p><span class="name">积分：</span>{{ productMsg.amount }}</p>
+          <p><span class="name">码类型：</span>{{ productMsg.type }}</p>
+          <p><span class="name">数量：</span>{{ productMsg.num }}</p>
+        </div>
+        <van-button
+          class="confirm-btn"
+          type="default"
+          @click="closePop">确认</van-button>
+      </div>
+    </van-popup>
   </div>
 </template>
 
 <script>
-// import Cookies from 'js-cookie';
+import Cookies from 'js-cookie';
+import { setTimeout } from 'timers';
 
 export default {
   name: 'home',
-  components: {},
   data() {
-    return {};
+    return {
+      get: true, // 是否可以获取用户信息
+      show: false,
+      codeMsg: {},
+      productMsg: {},
+      id: 36,
+      backLogin: '',
+      value: 0,
+      productOptions: [
+        { name: '请选择产品名称', value: 0 }
+      ],
+      proAddress: '',
+      bindAddress: ''
+    };
   },
-  methods: {}
+  mounted() {
+    if (this.getUrlKey('id')) {
+      this.id = this.$route.query.id;
+    }
+  },
+  created() {
+    if (!this.getUrlKey('code')) {
+      window.location.href = `https://reitschain.com/code/login?redirect_url=${window.location.href}&connect_redirect=1`;
+    } else {
+      Cookies.set('code', this.getUrlKey('code'))
+      if (this.getUrlKey('code') && this.get) {
+        this.get = false;
+        this.getMessage();
+      }
+    }
+  },
+  methods: {
+    getUrlKey(name) {
+      // eslint-disable-next-line
+      return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.href) || [, ''])[1].replace(/\+/g, '%20')) || null;
+    },
+    async getMessage() {
+      let result = await this.$http.get(`/backapi/admin/adminLogin?code=${this.getUrlKey('code')}`);
+      if (result._http_status !== 200 || result.code !== 0) {
+        this.$notify({
+          title: '网络错误',
+          message: result.msg
+        });
+        return;
+      }
+      Cookies.set('backLogin', result.backLogin);
+      this.backLogin = result.backLogin;
+      this.getBatchById(this.id, 1);
+      this.addressList();
+    },
+    closePop() {
+      this.show = false;
+    },
+    async getBatchById(id, type) {
+      let result = await this.$http.post('/backapi/vipproduct/getBatchById', {
+        backLogin: this.backLogin,
+        id: id
+      });
+      if (result._http_status !== 200 || result.code !== 0) {
+        this.$notify({
+          message: result.msg,
+          color: '#ad0000',
+          background: '#ffe1e1',
+          duration: 1000
+        });
+        return;
+      }
+      if (type === 1) { // 获取产品类型信息
+        // 1-防伪码   2-防伪码+溯源码  3-溯源码
+        this.codeMsg.type = result.data.type === 1 ? '防伪码' : result.data.type === 2 ? '防伪码+溯源码' : '溯源码';
+        this.codeMsg.num = result.data.num;
+      } else {
+        this.proAddress = result.data.proAddress;
+        this.bindAddress = result.data.bindAddress;
+        this.productMsg = {
+          amount: result.data.amount,
+          type: result.data.type === 1 ? '防伪码' : result.data.type === 2 ? '防伪码+溯源码' : '溯源码',
+          num: result.data.num,
+          proAddress: result.data.proAddress
+        }
+        setTimeout(() => {
+          this.bindProduct();
+        }, 200);
+      }
+    },
+    async addressList() {
+      let result = await this.$http.post('/backapi/vipproduct/addressList', {
+        backLogin: this.backLogin,
+      });
+      if (result._http_status !== 200 || result.code !== 0) {
+        this.$notify({
+          message: result.msg,
+          color: '#ad0000',
+          background: '#ffe1e1',
+          duration: 1000
+        });
+        return;
+      }
+      result.data.forEach((item) => {
+        let obj = {};
+        obj.text = item.proName;
+        obj.value = item.id;
+        this.productOptions.push(obj);
+      });
+    },
+    confirmClick() {
+      this.getBatchById(this.id, 2);
+    },
+    async bindProduct() {
+      let result = await this.$http.post('/backapi/vipproduct/bindProduct', {
+        backLogin: this.backLogin,
+        productAddress: this.proAddress,
+        batchAddress: this.bindAddress
+      });
+      if (result._http_status !== 200 || result.code !== 0) {
+        this.$notify({
+          message: result.msg,
+          color: '#ad0000',
+          background: '#ffe1e1',
+          duration: 1000
+        });
+        return;
+      }
+      this.show = true;
+    }
+  }
 }
 </script>
 
 <style lang="less" scoped>
-.home {}
+.home {
+  width: 100%;
+  height: 100%;
+  background-color: #f5f5f5;
+  .top-tip {
+    background-color: #fff;
+    line-height: 48px;
+    padding: 15px 11px 15px 32px;
+    .product-code-img {
+      width: 221px;
+    }
+  }
+  .card {
+    background-color: #fff;
+    margin-top: 20px;
+    line-height: 60px;
+    .title {
+      font-size: 28px;
+      font-weight: 800;
+      height: 90px;
+      line-height: 90px;
+      border-bottom: 1px solid #e1e1e1;
+      padding-left: 30px;
+      position: relative;
+      &:before {
+        content: '';
+        position: absolute;
+        left: 0;
+        width: 8px;
+        height: 40px;
+        border-top-right-radius: 6px;
+        border-bottom-right-radius: 6px;
+        background-color: #169bd5;
+        top: 50%;
+        transform: translate(0, -50%);
+      }
+    }
+    .message {
+      padding-left: 30px;
+    }
+    .product-msg {
+      width: 690px;
+      margin: 34px auto 32px;
+      border: 1px solid #e1e1e1;
+      text-align: center;
+      .list-title {
+        background-color: #f5f5f5;
+      }
+      .border-outside {
+        border-bottom: 1px solid #e1e1e1;
+      }
+      .border-inside {
+        border-right: 1px solid #e1e1e1;
+        &:last-child {
+          border: none;
+        }
+      }
+    }
+  }
+  .confirm-btn {
+    display: block;
+    width: 400px;
+    height: 88px;
+    line-height: 88px;
+    background-color: #169bd5;
+    color: #fff;
+    font-size: 28px;
+    font-weight: 600px;
+    border-radius: 6px;
+    margin: 40px auto 0;
+  }
+  .confirm-pop {
+    width: 550px;
+    padding: 76px 40px 46px;
+    position: relative;
+    .close {
+      width: 40px;
+      position: absolute;
+      right: 30px;
+      top: 30px;
+    }
+    .title {
+      font-size: 28px;
+      font-weight: 700;
+      text-align: center;
+    }
+    .success {
+      display: block;
+      margin: 60px auto 38px;
+      width: 109px;
+    }
+    .content {
+      line-height: 48px;
+      color: #737373;
+      .name {
+        display: inline-block;
+        width: 180px;
+      }
+    }
+  }
+}
+</style>
+
+<style lang="less">
+  .van-popup {
+    border-radius: 6px;
+  }
 </style>

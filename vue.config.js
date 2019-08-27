@@ -1,16 +1,15 @@
 module.exports = {
-  assetsDir: 'pamier',
-  indexPath: 'pamier.html',
+  publicPath: './',
   devServer: {
     proxy: {
-      '/pamier': {
-        target: 'http://tdmb.cjiot.cc', //对应自己的接口
+      '/backapi': {
+        target: 'http://39.100.122.95:8080/code_test_manager',
         changeOrigin: true,
         ws: true,
         pathRewrite: {
-          '^/pamier': '/pamier'
-        }
-      }
+          '^/backapi': '/backapi'
+        },
+      },
     }
   }, 
 }
