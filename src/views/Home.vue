@@ -28,10 +28,10 @@
           <van-col class="border-inside" span="5">积分奖励</van-col>
         </van-row>
         <van-row>
-          <van-col class="border-inside" span="7">苹果汁</van-col>
-          <van-col class="border-inside" span="6">aaa12</van-col>
-          <van-col class="border-inside" span="6">123321</van-col>
-          <van-col class="border-inside" span="5">10类型</van-col>
+          <van-col class="border-inside" span="7">{{ productMsg.proName }}</van-col>
+          <van-col class="border-inside" span="6">{{ productMsg.sname }}</van-col>
+          <van-col class="border-inside" span="6">{{ productMsg.signId }}</van-col>
+          <van-col class="border-inside" span="5">{{ productMsg.reward }}</van-col>
         </van-row>
       </div>
     </div>
@@ -50,9 +50,9 @@
           class="success"
           src="@/components/img/success.png">
         <div class="content">
-          <p><span class="name">产品名称：</span>{{ productMsg.name }}</p>
+          <p><span class="name">产品名称：</span>{{ productMsg.proName }}</p>
           <p><span class="name">英文ID：</span>{{ productMsg.sname }}</p>
-          <p><span class="name">产品编码：</span>{{ productMsg.proAddress }}</p>
+          <p><span class="name">产品编码：</span>{{ productMsg.signId }}</p>
           <p><span class="name">积分：</span>{{ productMsg.amount }}</p>
           <p><span class="name">码类型：</span>{{ productMsg.type }}</p>
           <p><span class="name">数量：</span>{{ productMsg.num }}</p>
@@ -151,7 +151,10 @@ export default {
           amount: result.data.amount,
           type: result.data.type === 1 ? '防伪码' : result.data.type === 2 ? '防伪码+溯源码' : '溯源码',
           num: result.data.num,
-          proAddress: result.data.proAddress
+          signId: result.data.signId,
+          proName: result.data.proName,
+          sname: result.data.sname,
+          reward: result.data.reward
         }
         setTimeout(() => {
           this.bindProduct();
