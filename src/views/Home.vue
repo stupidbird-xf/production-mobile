@@ -88,14 +88,14 @@ export default {
       proAddress: '',
       bindAddress: '',
       canLinkUp: false,
-      showList: true, /// false
+      showList: false,
       address: '',
       msgAllGet: false
     };
   },
   created() {
     // 判断是否是微信端打开
-    // const userNavigator = navigator.userAgent;
+    const userNavigator = navigator.userAgent;
     // eslint-disable-next-line
     let timer = setInterval(() => {
       if (!this.msgAllGet) {
@@ -108,17 +108,17 @@ export default {
       } else {
         clearInterval(timer);
         timer = null;
-        // if (userNavigator.toLowerCase().match(/micromessenger/i) == 'micromessenger') {
+        if (userNavigator.toLowerCase().match(/micromessenger/i) == 'micromessenger') {
         this.msgAllGet = true;
         this.getBatchById(this.id);
-        // } else {
-        //   this.$notify({
-        //     title: '网络错误',
-        //     message: '请在微信端打开页面'
-        //      background: '#ffe1e1',
-        //      duration: 3000
-        //   });
-        // }
+        } else {
+          this.$notify({
+            title: '网络错误',
+            message: '请在微信端打开页面',
+            background: '#ffe1e1',
+            duration: 3000
+          });
+        }
       }
     }, 300);
   },
@@ -356,6 +356,7 @@ export default {
     border-radius: 6px;
   }
   .van-col {
+    height: 60px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
