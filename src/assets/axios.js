@@ -1,20 +1,40 @@
+import Vue from 'vue';
 import axios from 'axios';
 import qs from 'qs';
+const publicPath = process.env.NODE_ENV === 'production' ? process.env.NODE_TEST === 'true' ? '' : 'http://39.100.122.95:8080/code_test_manager' : 'http://39.100.122.95:8080/code_test_manager';
 
 const getXhrPromise = (config) => {
   return new Promise((resolve) => {
     axios(config).then(res => {
-      res.data = res.data || {};
+      res.data = (typeof res.data === 'object' && res.data) || {};
       res.data._http_status = res.status;
       resolve(res.data);
-    }).catch(err => {
-      let { status } = err.response;
-      err.response.data = err.response.data || {};
-      err.response.data._http_status = status;
-      resolve(err.response.data);
+    }).catch(() => {
+      resolve();
     });
   });
 };
+
+axios.interceptors.response.use(res => {
+  if (res.status === 200) {
+    // if (res.data.code === 101) {
+    //   window.location.href = `https://reitschain.com/code/login?redirect_url=${window.location.href}&connect_redirect=1`;
+    //   return false;
+    // }
+    return res;
+  }
+  Vue.prototype.$notify.error({
+    title: '错误',
+    message: res.data.msg || '网络错误，请刷新'
+  });
+  return false;
+}, err => {
+  Vue.prototype.$notify.error({
+    title: '错误',
+    message: err.msg || '网络错误，请刷新'
+  });
+  return false;
+});
 
 export default {
   all(params) {
@@ -25,32 +45,23 @@ export default {
   },
   get(url, data) {
     const config = {
-      url,
+      url: `${publicPath}${url}`,
       method: 'get',
+      headers: {
+        'Content-Type': 'application/json'
+      },
       params: data
     };
     return getXhrPromise(config);
   },
-  post(url, data, type) {
+  post(url, data) {
     let config = {
-      url,
+      url: `${publicPath}${url}`,
       method: 'post',
-      data: qs.stringify(data),
       headers: {
-        'Content-Type': type || 'application/x-www-form-urlencoded'
-        // 'Token': 'https://testweiop.chengjuiot.com/a/p/guangxi-jins-cons-unpack-redpack.html?appid=jiangxizhongyan&barcode=fcLTgSPjSKfObXA8doVfskdixl&bn=fcLTgS&fvt=2018-02-23%2011:01:45&n=ce6c96b1b61317f9&pdi=jxtest&pdn=%E9%87%91%E5%9C%A3%28%E6%BB%95%E7%8E%8B%E9%98%81%C2%B7%E6%9B%B4%E4%B8%8A%E4%B8%80%E5%B1%82%E6%A5%BC%29%28%E7%9B%92%29&pdt=2&pin=true&res=1&st=5884&ts=1557219434080&vt=3198&sign=7e651f0a2885fd75db9b3963915d6778'
-      }
-    };
-    return getXhrPromise(config);
-  },
-  postJson(url, data, type) {
-    let config = {
-      url,
-      method: 'post',
-      data,
-      headers: {
-        'Content-Type': type || 'application/x-www-form-urlencoded'
-      }
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+      },
+      data: qs.stringify(data)
     };
     return getXhrPromise(config);
   }

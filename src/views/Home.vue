@@ -18,9 +18,14 @@
     <div class="card">
       <div class="title">选择产品</div>
       <van-dropdown-menu>
-        <van-dropdown-item v-model="value" :options="productOptions" />
+        <van-dropdown-item
+          v-model="value"
+          :options="productOptions"
+          @change="changeValue"/>
       </van-dropdown-menu>
-      <div class="product-msg">
+      <div
+        v-if="showList"
+        class="product-msg">
         <van-row class="list-title border-outside">
           <van-col class="border-inside" span="7">产品名称</van-col>
           <van-col class="border-inside" span="6">英文ID</van-col>
@@ -38,7 +43,7 @@
     <van-button
       class="confirm-btn"
       type="default"
-      @click="confirmClick">确认挂接</van-button>
+      @click="bindProduct">确认挂接</van-button>
     <van-popup v-model="show">
       <div class="confirm-pop">
         <img
@@ -60,73 +65,75 @@
         <van-button
           class="confirm-btn"
           type="default"
-          @click="closePop">确认</van-button>
+          @click="confirmClick">确认</van-button>
       </div>
     </van-popup>
   </div>
 </template>
 
 <script>
-import Cookies from 'js-cookie';
-import { setTimeout } from 'timers';
-
 export default {
   name: 'home',
   data() {
     return {
-      get: true, // 是否可以获取用户信息
       show: false,
       codeMsg: {},
       productMsg: {},
-      id: 36,
+      id: '',
       backLogin: '',
       value: 0,
       productOptions: [
-        { name: '请选择产品名称', value: 0 }
+        { text: '请选择产品名称', value: 0 }
       ],
       proAddress: '',
-      bindAddress: ''
+      bindAddress: '',
+      canLinkUp: false,
+      showList: true, /// false
+      address: '',
+      msgAllGet: false
     };
   },
-  mounted() {
-    if (this.getUrlKey('id')) {
-      this.id = this.$route.query.id;
-    }
-  },
   created() {
-    if (!this.getUrlKey('code')) {
-      window.location.href = `https://reitschain.com/code/login?redirect_url=${window.location.href}&connect_redirect=1`;
-    } else {
-      Cookies.set('code', this.getUrlKey('code'))
-      if (this.getUrlKey('code') && this.get) {
-        this.get = false;
-        this.getMessage();
+    // 判断是否是微信端打开
+    // const userNavigator = navigator.userAgent;
+    // eslint-disable-next-line
+    let timer = setInterval(() => {
+      if (!this.msgAllGet) {
+        this.id = this.getUrlKey('id');
+        this.backLogin = this.getUrlKey('backLogin');
+        this.address = this.getUrlKey('address');
+        if (this.backLogin !== '' && this.id !== '' && this.address !== '') {
+          this.msgAllGet = true;
+        }
+      } else {
+        clearInterval(timer);
+        timer = null;
+        // if (userNavigator.toLowerCase().match(/micromessenger/i) == 'micromessenger') {
+        this.msgAllGet = true;
+        this.getBatchById(this.id);
+        // } else {
+        //   this.$notify({
+        //     title: '网络错误',
+        //     message: '请在微信端打开页面'
+        //      background: '#ffe1e1',
+        //      duration: 3000
+        //   });
+        // }
       }
-    }
+    }, 300);
   },
   methods: {
+    changeValue() {
+      this.getMessage();
+    },
     getUrlKey(name) {
       // eslint-disable-next-line
       return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.href) || [, ''])[1].replace(/\+/g, '%20')) || null;
     },
-    async getMessage() {
-      let result = await this.$http.get(`/backapi/admin/adminLogin?code=${this.getUrlKey('code')}`);
-      if (result._http_status !== 200 || result.code !== 0) {
-        this.$notify({
-          title: '网络错误',
-          message: result.msg
-        });
-        return;
-      }
-      Cookies.set('backLogin', result.backLogin);
-      this.backLogin = result.backLogin;
-      this.getBatchById(this.id, 1);
-      this.addressList();
-    },
     closePop() {
       this.show = false;
     },
-    async getBatchById(id, type) {
+    async getBatchById(id) {
       let result = await this.$http.post('/backapi/vipproduct/getBatchById', {
         backLogin: this.backLogin,
         id: id
@@ -136,29 +143,33 @@ export default {
           message: result.msg,
           color: '#ad0000',
           background: '#ffe1e1',
-          duration: 1000
+          duration: 3000
         });
         return;
       }
-      if (type === 1) { // 获取产品类型信息
-        // 1-防伪码   2-防伪码+溯源码  3-溯源码
-        this.codeMsg.type = result.data.type === 1 ? '防伪码' : result.data.type === 2 ? '防伪码+溯源码' : '溯源码';
-        this.codeMsg.num = result.data.num;
-      } else {
-        this.proAddress = result.data.proAddress;
-        this.bindAddress = result.data.bindAddress;
-        this.productMsg = {
-          amount: result.data.amount,
-          type: result.data.type === 1 ? '防伪码' : result.data.type === 2 ? '防伪码+溯源码' : '溯源码',
-          num: result.data.num,
-          signId: result.data.signId,
-          proName: result.data.proName,
-          sname: result.data.sname,
-          reward: result.data.reward
-        }
-        setTimeout(() => {
-          this.bindProduct();
-        }, 200);
+      // 1-防伪码   2-防伪码+溯源码  3-溯源码
+      this.codeMsg.type = result.data.type === 1 ? '防伪码' : result.data.type === 2 ? '防伪码+溯源码' : '溯源码';
+      this.bindAddress = result.data.proAddress; // 产品码地址
+      this.codeMsg.num = result.data.num;
+      this.addressList();
+    },
+    async getMessage() {
+      let result = await this.$http.post('/backapi/vipproduct/getProductById', {
+        backLogin: this.backLogin,
+        id: this.value
+      });
+      this.showList = true;
+      this.canLinkUp = true;
+      this.proAddress = result.data.proAddress; // 产品地址
+      this.productMsg = {
+        amount: result.data.amount, 
+        type: result.data.type === 1 ? '防伪码' : result.data.type === 2 ? '防伪码+溯源码' : '溯源码',
+        num: result.data.num,
+        signId: result.data.signId,
+        proName: result.data.proName,
+        sname: result.data.sname,
+        reward: result.data.reward,
+        assetId: result.data.assetId
       }
     },
     async addressList() {
@@ -170,7 +181,7 @@ export default {
           message: result.msg,
           color: '#ad0000',
           background: '#ffe1e1',
-          duration: 1000
+          duration: 2000
         });
         return;
       }
@@ -181,10 +192,41 @@ export default {
         this.productOptions.push(obj);
       });
     },
-    confirmClick() {
-      this.getBatchById(this.id, 2);
+    async confirmClick() {
+      const busiJson = JSON.stringify({
+          proAddress: this.proAddress,
+          bindAddress: this.bindAddress,
+          num: this.productMsg.num,
+          info: "绑定产品"
+        });
+      let result = await this.$http.post('/backapi/vipproduct/coinMoney', {
+        backLogin: this.backLogin,
+        productAddress: this.proAddress, // 产品地址
+        address: this.address, // 用户地址
+        busiJson: busiJson,
+        assetId: this.productMsg.assetId
+      });
+      if (result._http_status !== 200 || result.code !== 0) {
+        this.$notify({
+          message: result.msg,
+          color: '#ad0000',
+          background: '#ffe1e1',
+          duration: 3000
+        });
+      }
     },
     async bindProduct() {
+      if (!this.canLinkUp) return;
+      if (this.value === 0) {
+        this.$notify({
+          message: '请选择挂接产品',
+          color: '#ad0000',
+          background: '#ffe1e1',
+          duration: 3000
+        });
+        return;
+      }
+      alert(`proAddress--->${this.proAddress}bindAddress--->${this.bindAddress}`);
       let result = await this.$http.post('/backapi/vipproduct/bindProduct', {
         backLogin: this.backLogin,
         productAddress: this.proAddress,
@@ -195,7 +237,7 @@ export default {
           message: result.msg,
           color: '#ad0000',
           background: '#ffe1e1',
-          duration: 1000
+          duration: 3000
         });
         return;
       }
@@ -312,5 +354,10 @@ export default {
 <style lang="less">
   .van-popup {
     border-radius: 6px;
+  }
+  .van-col {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 </style>
