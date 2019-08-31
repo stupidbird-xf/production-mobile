@@ -226,7 +226,7 @@ export default {
         });
         return;
       }
-      alert(`proAddress--->${this.proAddress}bindAddress--->${this.bindAddress}`);
+      // alert(`proAddress--->${this.proAddress}bindAddress--->${this.bindAddress}`);
       let result = await this.$http.post('/backapi/vipproduct/bindProduct', {
         backLogin: this.backLogin,
         productAddress: this.proAddress,
@@ -355,10 +355,12 @@ export default {
   .van-popup {
     border-radius: 6px;
   }
-  .van-col {
-    height: 60px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  .product-msg {
+    .van-col {
+      height: 60px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
   }
 </style>
