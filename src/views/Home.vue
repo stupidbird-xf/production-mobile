@@ -57,10 +57,10 @@
         <div class="content">
           <p><span class="name">产品名称：</span>{{ productMsg.proName }}</p>
           <p><span class="name">英文ID：</span>{{ productMsg.sname }}</p>
-          <p><span class="name">产品编码：</span>{{ productMsg.signId }}</p>
-          <p><span class="name">积分：</span>{{ productMsg.amount }}</p>
+          <p><span class="name">产品编码：</span>{{ productMsg.productLicense }}</p>
+          <p><span class="name">积分：</span>{{ productMsg.reward }}</p>
           <p><span class="name">码类型：</span>{{ productMsg.type }}</p>
-          <p><span class="name">数量：</span>{{ productMsg.num }}</p>
+          <p><span class="name">数量：</span>{{ productMsg.proNum }}</p>
         </div>
         <van-button
           class="confirm-btn"
@@ -164,8 +164,8 @@ export default {
       this.productMsg = {
         amount: result.data.amount, 
         type: result.data.type === 1 ? '防伪码' : result.data.type === 2 ? '防伪码+溯源码' : '溯源码',
-        num: result.data.num,
-        signId: result.data.signId,
+        proNum: result.data.proNum,
+        productLicense: result.data.productLicense,
         proName: result.data.proName,
         sname: result.data.sname,
         reward: result.data.reward,
@@ -214,6 +214,7 @@ export default {
           duration: 3000
         });
       }
+      this.closePop();
     },
     async bindProduct() {
       if (!this.canLinkUp) return;
