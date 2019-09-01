@@ -62,16 +62,21 @@
           <p><span class="name">码类型：</span>{{ productMsg.type }}</p>
           <p><span class="name">数量：</span>{{ productMsg.proNum }}</p>
         </div>
-        <van-button
+        <!-- <van-button
           class="confirm-btn"
           type="default"
-          @click="confirmClick">确认</van-button>
+          @click="confirmClick">确认</van-button> -->
+        <div class="code-content">
+          <div class="qr-code" id="qrcode"></div>
+        </div>
       </div>
     </van-popup>
   </div>
 </template>
 
 <script>
+import QRCode from 'qrcodejs2';
+
 export default {
   name: 'home',
   data() {
@@ -90,7 +95,8 @@ export default {
       canLinkUp: false,
       showList: false,
       address: '',
-      msgAllGet: false
+      msgAllGet: false,
+      codeText: 'www.baidu.com'
     };
   },
   created() {
@@ -193,18 +199,18 @@ export default {
       });
     },
     async confirmClick() {
-      const busiJson = JSON.stringify({
-          proAddress: this.proAddress,
-          bindAddress: this.bindAddress,
-          num: this.productMsg.num,
-          info: "绑定产品"
-        });
-      let result = await this.$http.post('/backapi/vipproduct/coinMoney', {
+      // const busiJson = JSON.stringify({
+      //   proAddress: this.proAddress,
+      //   bindAddress: this.bindAddress,
+      //   num: this.productMsg.num,
+      //   info: "绑定产品"
+      // });
+      let result = await this.$http.post('/backapi/vipproduct/confirmHangUp', {
         backLogin: this.backLogin,
-        productAddress: this.proAddress, // 产品地址
-        address: this.address, // 用户地址
-        busiJson: busiJson,
-        assetId: this.productMsg.assetId
+        productAddress: this.proAddress // 产品地址
+        // address: this.address, // 用户地址
+        // busiJson: busiJson,
+        // assetId: this.productMsg.assetId
       });
       if (result._http_status !== 200 || result.code !== 0) {
         this.$notify({
@@ -214,7 +220,10 @@ export default {
           duration: 3000
         });
       }
-      this.closePop();
+      this.show = true;
+      setTimeout(() => {
+        this.qrcode();
+      }, 200);
     },
     async bindProduct() {
       if (!this.canLinkUp) return;
@@ -227,7 +236,6 @@ export default {
         });
         return;
       }
-      // alert(`proAddress--->${this.proAddress}bindAddress--->${this.bindAddress}`);
       let result = await this.$http.post('/backapi/vipproduct/bindProduct', {
         backLogin: this.backLogin,
         productAddress: this.proAddress,
@@ -242,8 +250,18 @@ export default {
         });
         return;
       }
-      this.show = true;
-    }
+      this.confirmClick();
+    },
+    qrcode () {
+      let qrcode = new QRCode('qrcode', {
+        width: 150,
+        height: 150, // 高度
+        text: this.codeText, // 二维码内容
+        render: 'canvas', // 设置渲染方式（有两种方式 table和canvas，默认是canvas）
+        background: '#f1f1f1'
+      });
+      console.log(qrcode);
+    },
   }
 }
 </script>
@@ -346,6 +364,18 @@ export default {
       .name {
         display: inline-block;
         width: 180px;
+      }
+    }
+    .code-content {
+      overflow: hidden;
+      margin-top: 30px;
+      .qr-code {
+        float: left;
+        position: relative;
+        left: 50%;
+        top: 0;
+        background-color: #f1f1f1;
+        transform: translate(-50%, 0);
       }
     }
   }
