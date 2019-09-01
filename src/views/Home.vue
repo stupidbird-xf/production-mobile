@@ -66,6 +66,7 @@
           class="confirm-btn"
           type="default"
           @click="confirmClick">确认</van-button> -->
+        <p class="code-tip">请扫描此码完成信息上链操作</p>
         <div class="code-content">
           <div class="qr-code" id="qrcode"></div>
         </div>
@@ -365,10 +366,14 @@ export default {
         display: inline-block;
         width: 180px;
       }
+      margin-top: 30px;
+    }
+    .code-tip {
+      text-align: center;
     }
     .code-content {
       overflow: hidden;
-      margin-top: 30px;
+      margin-top: 15px;
       .qr-code {
         float: left;
         position: relative;
