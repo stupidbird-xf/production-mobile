@@ -95,7 +95,7 @@ export default {
   },
   created() {
     // 判断是否是微信端打开
-    // const userNavigator = navigator.userAgent;
+    const userNavigator = navigator.userAgent;
     // eslint-disable-next-line
     let timer = setInterval(() => {
       if (!this.msgAllGet) {
@@ -108,17 +108,17 @@ export default {
       } else {
         clearInterval(timer);
         timer = null;
-        // if (userNavigator.toLowerCase().match(/micromessenger/i) == 'micromessenger') {
+        if (userNavigator.toLowerCase().match(/micromessenger/i) == 'micromessenger') {
         this.msgAllGet = true;
         this.getBatchById(this.id);
-        // } else {
-        //   this.$notify({
-        //     title: '网络错误',
-        //     message: '请在微信端打开页面',
-        //     background: '#ffe1e1',
-        //     duration: 3000
-        //   });
-        // }
+        } else {
+          this.$notify({
+            title: '网络错误',
+            message: '请在微信端打开页面',
+            background: '#ffe1e1',
+            duration: 3000
+          });
+        }
       }
     }, 300);
   },
