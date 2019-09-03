@@ -97,7 +97,7 @@ export default {
       showList: false,
       address: '',
       msgAllGet: false,
-      codeText: 'www.baidu.com'
+      codeText: ''
     };
   },
   created() {
@@ -221,6 +221,7 @@ export default {
           duration: 3000
         });
       }
+      this.codeText = result.message;
       this.show = true;
       setTimeout(() => {
         this.qrcode();
