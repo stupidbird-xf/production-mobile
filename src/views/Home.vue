@@ -208,7 +208,8 @@ export default {
       // });
       let result = await this.$http.post('/backapi/vipproduct/confirmHangUp', {
         backLogin: this.backLogin,
-        productAddress: this.proAddress // 产品地址
+        productAddress: this.proAddress, // 产品地址
+        batchAddress: this.bindAddress // 产品码地址
         // address: this.address, // 用户地址
         // busiJson: busiJson,
         // assetId: this.productMsg.assetId
