@@ -5,7 +5,7 @@ import Home from './views/Home.vue';
 Vue.use(Router);
 
 const router =  new Router({
-  // mode: 'history',
+  mode: 'history',
   base: '/', // process.env.NODE_ENV === 'production' ? '/dist/' :
   routes: [
     {
