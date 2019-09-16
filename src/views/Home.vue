@@ -108,8 +108,6 @@ export default {
     };
   },
   created() {
-    console.log(!this.getUrlKey('backLogin'));
-    console.log(!this.getUrlKey('code'));
     if (!this.getUrlKey('backLogin') && !this.getUrlKey('code')) {
       window.location.href = `https://reitschain.com/code/login?redirect_url=${window.location.href}&connect_redirect=1`;
     } else {
@@ -132,9 +130,10 @@ export default {
           this.address = this.getUrlKey('address');
           if (this.backLogin !== '' && this.id !== '' && this.address !== '') {
             this.msgAllGet = true;
-            this.showPage = true;
           }
         } else {
+          if (!this.id || !this.address) return;
+          this.showPage = true;
           clearInterval(timer);
           timer = null;
           if (userNavigator.toLowerCase().match(/micromessenger/i) == 'micromessenger') {
