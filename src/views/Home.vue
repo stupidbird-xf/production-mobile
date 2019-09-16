@@ -108,6 +108,8 @@ export default {
     };
   },
   created() {
+    if (this.getUrlKey('id')) Cookies.set('id', this.getUrlKey('id'));
+    if (this.getUrlKey('address')) Cookies.set('address', this.getUrlKey('address'));
     if (!this.getUrlKey('backLogin') && !this.getUrlKey('code')) {
       window.location.href = `https://reitschain.com/code/login?redirect_url=${window.location.href}&connect_redirect=1`;
     } else {
@@ -125,20 +127,20 @@ export default {
       // eslint-disable-next-line
       let timer = setInterval(() => {
         if (!this.msgAllGet) {
-          this.id = this.getUrlKey('id');
+          this.id = this.getUrlKey('id') || Cookies.get('id');
           this.backLogin = this.getUrlKey('backLogin') || Cookies.get('backLogin');
-          this.address = this.getUrlKey('address');
+          this.address = this.getUrlKey('address') || Cookies.get('address');
           if (this.backLogin !== '' && this.id !== '' && this.address !== '') {
             this.msgAllGet = true;
           }
         } else {
           if (!this.id || !this.address) return;
-          this.showPage = true;
-          clearInterval(timer);
-          timer = null;
-          if (userNavigator.toLowerCase().match(/micromessenger/i) == 'micromessenger') {
-          this.msgAllGet = true;
-          this.getBatchById(this.id);
+            this.showPage = true;
+            clearInterval(timer);
+            timer = null;
+            if (userNavigator.toLowerCase().match(/micromessenger/i) == 'micromessenger') {
+            this.msgAllGet = true;
+            this.getBatchById(this.id);
           } else {
             this.$notify({
               title: '网络错误',
