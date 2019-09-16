@@ -17,10 +17,6 @@ const getXhrPromise = (config) => {
 
 axios.interceptors.response.use(res => {
   if (res.status === 200) {
-    // if (res.data.code === 101) {
-    //   window.location.href = `https://reitschain.com/code/login?redirect_url=${window.location.href}&connect_redirect=1`;
-    //   return false;
-    // }
     return res;
   }
   Vue.prototype.$notify.error({
