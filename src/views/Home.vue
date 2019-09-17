@@ -161,6 +161,7 @@ export default {
         return;
       }
       Cookies.set('backLogin', result.backLogin);
+      Cookies.set('address'. result.data.address);
       this.view();
     },
     changeValue() {
