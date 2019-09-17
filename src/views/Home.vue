@@ -134,7 +134,7 @@ export default {
             this.msgAllGet = true;
           }
         } else {
-          if (!this.id || !this.address) {
+          if (!this.id) {
             this.showPage = false;
             return;
           }
