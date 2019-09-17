@@ -20,7 +20,7 @@ axios.interceptors.response.use(res => {
   if (res.status === 200) {
     while (res.data.code === 101) {
       const urlStr = window.location.href
-      const url = urlStr.split('?')[0]
+      const url = urlStr.split('&')[0]
       Object.keys(Cookies.get()).forEach(key => Cookies.remove(key))
       window.location.href = `https://reitschain.com/code/login?redirect_url=${url}`
       return false

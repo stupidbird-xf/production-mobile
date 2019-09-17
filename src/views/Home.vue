@@ -16,7 +16,9 @@
           <p>数量：{{ codeMsg.num }}</p>
         </div>
       </div>
-      <div class="card">
+      <div
+        v-if="hasBind === false"
+        class="card">
         <div class="title">选择产品</div>
         <van-dropdown-menu>
           <van-dropdown-item
@@ -41,6 +43,9 @@
           </van-row>
         </div>
       </div>
+      <div
+        v-else-if="hasBind === true"
+        class="has-bind">已挂接！请重新选择其它批次产品码</div>
       <van-button
         class="confirm-btn"
         type="default"
@@ -89,6 +94,7 @@ export default {
   data() {
     return {
       show: false,
+      hasBind: '',
       showPage: '',
       codeMsg: {},
       productMsg: {},
@@ -142,8 +148,8 @@ export default {
           clearInterval(timer);
           timer = null;
           if (userNavigator.toLowerCase().match(/micromessenger/i) == 'micromessenger') {
-            this.msgAllGet = true;
-            this.getBatchById(this.id);
+          this.msgAllGet = true;
+          this.getBatchById(this.id);
           } else {
             this.$notify({
               title: '网络错误',
@@ -195,7 +201,12 @@ export default {
       this.codeMsg.type = result.data.type === 1 ? '防伪码' : result.data.type === 2 ? '防伪码+溯源码' : '溯源码';
       this.bindAddress = result.data.proAddress; // 产品码地址
       this.codeMsg.num = result.data.num;
-      this.addressList();
+      if (result.data.bindAddress !== '') {
+        this.hasBind = true;
+      } else {
+        this.hasBind = false;
+        this.addressList();
+      }
     },
     async getMessage() {
       let result = await this.$http.post('/backapi/vipproduct/getProductById', {
@@ -290,6 +301,7 @@ export default {
         });
         return;
       }
+      this.hasBind = true;
       this.confirmClick();
     },
     qrcode () {
@@ -427,6 +439,10 @@ export default {
     font-size: 36px;
     padding-top: 300px;
     color: #333;
+    text-align: center;
+  }
+  .has-bind {
+    margin-top: 50px;
     text-align: center;
   }
 }
