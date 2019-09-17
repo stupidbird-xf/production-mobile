@@ -74,7 +74,7 @@
         </div>
       </van-popup>
     </div>
-    <div v-else>
+    <div v-else-if="showPage === false">
       <div class="no-action">错误！请按规范操作！</div>
     </div>
   </div>
@@ -89,7 +89,7 @@ export default {
   data() {
     return {
       show: false,
-      showPage: false,
+      showPage: '',
       codeMsg: {},
       productMsg: {},
       id: '',
@@ -134,11 +134,14 @@ export default {
             this.msgAllGet = true;
           }
         } else {
-          if (!this.id || !this.address) return;
-            this.showPage = true;
-            clearInterval(timer);
-            timer = null;
-            if (userNavigator.toLowerCase().match(/micromessenger/i) == 'micromessenger') {
+          if (!this.id || !this.address) {
+            this.showPage = false;
+            return;
+          }
+          this.showPage = true;
+          clearInterval(timer);
+          timer = null;
+          if (userNavigator.toLowerCase().match(/micromessenger/i) == 'micromessenger') {
             this.msgAllGet = true;
             this.getBatchById(this.id);
           } else {
