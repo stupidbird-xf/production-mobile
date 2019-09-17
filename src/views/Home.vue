@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <div v-if="showPage">
+    <div v-if="showPage === true">
       <van-row class="top-tip">
         <van-col span="17">
           <p>使用指南：<br/>1、在下方列表选择需要挂接的产品信息<br/>2、点击“挂接”按钮</p>
